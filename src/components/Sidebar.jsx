@@ -17,6 +17,7 @@ export const Sidebar = () => {
   const activeId = useSelector(state => state.list.current);
   const isLoggedIn = useSelector(state => state.auth.token !== null);
   const userName = useSelector(state => state.auth.user?.name);
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
 
   const shouldHighlight = !pathname.startsWith('/list/new');
   const { logout } = useLogout();
@@ -27,6 +28,17 @@ export const Sidebar = () => {
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsLargeScreen(window.innerWidth > 780);
+    };
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => {
+      window.removeEventListener('resize', checkScreenSize);
+    };
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : 'auto';
@@ -43,70 +55,122 @@ export const Sidebar = () => {
   };
 
   return (
-    <>
-      <button
-        type="button"
-        className={`drawer__icon ${isOpen ? 'is-open' : ''}`}
-        onClick={toggleDrawer}
-        aria-label="メニューを開閉する"
-      >
-        <span className="drawer__icon--bar"></span>
-        <span className="drawer__icon--bar"></span>
-        <span className="drawer__icon--bar"></span>
-      </button>
-
-      {isOpen && <div className="overlay" onClick={toggleDrawer}></div>}
-
-      <div className={`drawer ${isOpen ? 'is-open' : ''}`}>
-        <div className="drawer__body">
-          <Link to="/" className="drawer__title_link">
-            <h1 className="drawer__title">Todos</h1>
+    <div>
+      {isLargeScreen ? (
+        <div className="sidebar">
+          <Link to="/">
+            <h1 className="sidebar__title">Todos</h1>
           </Link>
-
           {isLoggedIn ? (
             <>
               {lists && (
-                <div className="drawer__lists">
-                  <h2 className="drawer__lists_title">Lists</h2>
-                  <ul className="drawer__lists_items">
+                <div className="sidebar__lists">
+                  <h2 className="sidebar__lists_title">Lists</h2>
+                  <ul className="sidebar__lists_items">
                     {lists.map(listItem => (
                       <li key={listItem.id}>
                         <Link
                           data-active={shouldHighlight && listItem.id === activeId}
                           to={`/lists/${listItem.id}`}
-                          className="drawer__lists_item"
+                          className="sidebar__lists_item"
                         >
-                          <ListIcon aria-hidden className="drawer__lists_icon" />
+                          <ListIcon aria-hidden className="sidebar__lists_icon" />
                           {listItem.title}
                         </Link>
                       </li>
                     ))}
                     <li>
-                      <Link to="/list/new" className="drawer__lists_button">
-                        <PlusIcon className="drawer__lists_plus_icon" />
+                      <Link to="/list/new" className="sidebar__lists_button">
+                        <PlusIcon className="sidebar__lists_plus_icon" />
                         New List...
                       </Link>
                     </li>
                   </ul>
                 </div>
               )}
-              <div className="drawer__spacer" />
-              <div className="drawer__account">
-                <p className="drawer__account_name">{userName}</p>
-                <button type="button" className="drawer__account_logout" onClick={handleLogout}>
+              <div className="sidebar__spacer" aria-hidden />
+              <div className="sidebar__account">
+                <p className="sidebar__account_name">{userName}</p>
+                <button type="button" className="sidebar__account_logout" onClick={logout}>
                   Logout
                 </button>
               </div>
             </>
           ) : (
-            <div className="drawer__login_wrapper">
-              <Link to="/signin" className="drawer__login">
+            <>
+              <Link to="/signin" className="sidebar__login">
                 Login
               </Link>
-            </div>
+            </>
           )}
         </div>
-      </div>
-    </>
+      ) : (
+        <div>
+          <button
+            type="button"
+            className={`drawer__icon ${isOpen ? 'is-open' : ''}`}
+            onClick={toggleDrawer}
+            aria-label="メニューを開閉する"
+          >
+            <span className="drawer__icon--bar"></span>
+            <span className="drawer__icon--bar"></span>
+            <span className="drawer__icon--bar"></span>
+          </button>
+
+          {isOpen && <div className="overlay" onClick={toggleDrawer}></div>}
+
+          <div className={`drawer ${isOpen ? 'is-open' : ''}`}>
+            <div className="drawer__body">
+              <Link to="/" className="drawer__title_link">
+                <h1 className="drawer__title">Todos</h1>
+              </Link>
+
+              {isLoggedIn ? (
+                <>
+                  {lists && (
+                    <div className="drawer__lists">
+                      <h2 className="drawer__lists_title">Lists</h2>
+                      <ul className="drawer__lists_items">
+                        {lists.map(listItem => (
+                          <li key={listItem.id}>
+                            <Link
+                              data-active={shouldHighlight && listItem.id === activeId}
+                              to={`/lists/${listItem.id}`}
+                              className="drawer__lists_item"
+                            >
+                              <ListIcon aria-hidden className="drawer__lists_icon" />
+                              {listItem.title}
+                            </Link>
+                          </li>
+                        ))}
+                        <li>
+                          <Link to="/list/new" className="drawer__lists_button">
+                            <PlusIcon className="drawer__lists_plus_icon" />
+                            New List...
+                          </Link>
+                        </li>
+                      </ul>
+                    </div>
+                  )}
+                  <div className="drawer__spacer" />
+                  <div className="drawer__account">
+                    <p className="drawer__account_name">{userName}</p>
+                    <button type="button" className="drawer__account_logout" onClick={handleLogout}>
+                      Logout
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="drawer__login_wrapper">
+                  <Link to="/signin" className="drawer__login">
+                    Login
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
